@@ -25,7 +25,7 @@ export const app = new Application();
         autoDensity: true,
         antialias: false,
         preference: 'webgpu',
-        backgroundColor: 0x000,
+        backgroundColor: '#4fc4f7',
     });
     app.resizeTo = canvasContainer;
     canvasContainer.append(app.canvas);
