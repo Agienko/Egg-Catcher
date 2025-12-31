@@ -5,6 +5,10 @@
     user-select: none;
 }
 
+html{
+    background: #4fc4f7;
+}
+
 body{
     position: fixed;
     inset: 0;
