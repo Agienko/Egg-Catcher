@@ -119,9 +119,15 @@ export class Egg extends Sprite{
             this.type = '';
             Ticker.shared.remove(this.tick);
             this.y = WIDTH - 60;
-            this.x = randomMinMax(this.x + 5, this.x - 5)
+
+            const rnd = randomMinMax(-5, 5);
+
+            this.angle = -rnd;
+            this.x += rnd;
+
             this.texture = Texture.from(this.isShit ? 'crashed_shit' : 'crashed_egg' );
-            this.tween = gsap.delayedCall(1, () => this.destroy());
+
+            this.tween = gsap.to(this, {alpha: 0, duration: 1.5, onComplete: () => this.destroy()})
             sound.play('crash', {volume: 0.05, speed: this.isShit ? 2 : 1.5});
             if(!this.isShit) --SIGNALS.lives.value;
         }

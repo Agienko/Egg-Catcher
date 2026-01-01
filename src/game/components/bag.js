@@ -3,7 +3,6 @@ import {WIDTH} from "../../constants/constants.js";
 import {app, resizer} from "../../main.js";
 import {SIGNALS} from "../signals/signals.js";
 import {effect} from "@preact/signals-core";
-import {randomFromArr} from "../../helpers/helper.js";
 import {gsap} from "gsap";
 import {sender} from "../../sender/event-sender.js";
 
@@ -29,14 +28,11 @@ export class Bag extends Container{
         this.shadow.anchor.set(0.5);
         this.addChild(this.shadow);
 
-        this.shits = []
-
-
         this.stage.addChild(this);
         this.y = 310;
 
-        app.canvas.addEventListener('pointerdown', this.onUpdatePosX);
-        app.canvas.addEventListener('pointermove', this.onUpdatePosX);
+        document.addEventListener('pointerdown', this.onUpdatePosX);
+        document.addEventListener('pointermove', this.onUpdatePosX);
 
         sender.on('shitOnBag', shit => {
             const pos = this.toLocal(shit.position);
@@ -47,9 +43,9 @@ export class Bag extends Container{
 
             gsap.to(shit.scale, {y: 1.4, duration: 1.2, onComplete: () => {
                 gsap.to(shit, {alpha: 0, duration: 1.5, onComplete: () => {
+                        this.removeChild(shit);
                         shit.destroy({children: true})
                     }})
-                // gsap.delayedCall(2, () => shit.destroy({children: true}))
                 }})
         })
 
@@ -57,6 +53,7 @@ export class Bag extends Container{
     }
 
     onUpdatePosX = e => {
+        document.setPointerCapture?.(e.pointerId);
         const rect = app.canvas.getBoundingClientRect();
         const x = (e.x - rect.x) / resizer.scale;
         SIGNALS.bagX.value = Math.min(Math.max(x, 16), WIDTH - 16);
