@@ -24,9 +24,9 @@ export class Bag extends Container{
             alpha: 0.5,
             width: 38,
             height: 4,
-            filters: [new BlurFilter(6)],
             y: 31
         });
+        this.shadow.filters = [new BlurFilter({strength: 6})];
         this.shadow.anchor.set(0.5);
         this.addChild(this.shadow);
 

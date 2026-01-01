@@ -6,9 +6,12 @@ import {gsap} from "gsap";
 export class Texts {
     constructor(stage) {
         const style = {
-            fill: "#b22222",
-            stroke: "#791414",
-            strokeThickness: 1,
+            fill: "#4fc4f7",
+            stroke: {
+                color: "#b22222",
+                width: 5,
+                join: 'round',
+            },
             fontSize: 16,
             fontWeight: 'bold',
             fontFamily: "monospace",
