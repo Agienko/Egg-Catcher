@@ -12,9 +12,12 @@ import {manifest} from "./config/manifest.js";
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 
+export const flashBack = document.createElement('div');
+flashBack.classList.add('flashBack');
+
 const canvasContainer = document.createElement('div');
 canvasContainer.classList.add('canvas-container');
-document.body.append(canvasContainer);
+document.body.append(canvasContainer, flashBack);
 
 export const resizer = new Resizer(canvasContainer);
 export const app = new Application();

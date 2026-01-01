@@ -12,6 +12,8 @@ export class Bag extends Container{
 
         this.stage = stage;
 
+        this.spriteTween = null;
+
         this.sprite = new Sprite(Texture.from('bag'));
         this.sprite.anchor.set(0.5);
         this.addChild(this.sprite);
@@ -23,7 +25,7 @@ export class Bag extends Container{
             width: 38,
             height: 4,
             filters: [new BlurFilter(6)],
-            y: 32
+            y: 31
         });
         this.shadow.anchor.set(0.5);
         this.addChild(this.shadow);
@@ -34,22 +36,36 @@ export class Bag extends Container{
         document.addEventListener('pointerdown', this.onUpdatePosX);
         document.addEventListener('pointermove', this.onUpdatePosX);
 
-        sender.on('shitOnBag', shit => {
-            const pos = this.toLocal(shit.position);
-            this.addChild(shit)
-            shit.stage = this;
-            const x = Math.min(Math.max(Math.round(pos.x), -14), 14);
-            shit.position.set(x, -7);
+        sender.on('shitOnBag', this.onShitOnBag)
 
-            gsap.to(shit.scale, {y: 1.4, duration: 1.2, onComplete: () => {
+        effect(() => this.x = SIGNALS.bagX.value);
+
+
+        this.score = SIGNALS.score.value
+
+        effect(() => {
+            if(SIGNALS.score.value > this.score) {
+                this.spriteTween?.kill();
+                this.y = 310;
+                this.spriteTween = gsap.to(this, {y: 310 + 4, yoyo: true, repeat: 1, duration: 0.08});
+            }
+            this.score = SIGNALS.score.value
+        })
+    }
+
+    onShitOnBag = (shit) => {
+        const pos = this.toLocal(shit.position);
+        this.addChild(shit);
+        shit.stage = this;
+        const x = Math.min(Math.max(Math.round(pos.x), -14), 14);
+        shit.position.set(x, -7);
+
+        gsap.to(shit.scale, {y: 1.4, duration: 1.2, onComplete: () => {
                 gsap.to(shit, {alpha: 0, duration: 1.5, onComplete: () => {
                         this.removeChild(shit);
                         shit.destroy({children: true})
                     }})
-                }})
-        })
-
-        effect(() => this.x = SIGNALS.bagX.value);
+            }})
     }
 
     onUpdatePosX = e => {

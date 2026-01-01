@@ -1,4 +1,4 @@
-import {BlurFilter, Container, Sprite, Texture} from "pixi.js";
+import {Container} from "pixi.js";
 import {World} from "./components/world.js";
 import {Texts} from "./components/texts.js";
 import {Chicken} from "./components/chicken.js";
@@ -8,6 +8,7 @@ import {gsap} from "gsap";
 import {effect} from "@preact/signals-core";
 import {SIGNALS} from "./signals/signals.js";
 import {GameOver} from "../game-over/game-over.js";
+import {flashBack} from "../main.js";
 
 class Game extends Container{
     constructor(stage) {
@@ -29,7 +30,26 @@ class Game extends Container{
 
         this.bag = new Bag(this);
 
+
+
         this.loop();
+
+        this.lives = SIGNALS.lives.value
+        effect(()=> {
+            if(SIGNALS.lives.value > this.lives) {
+                flashBack.style.opacity = '0.5';
+                gsap.to(flashBack.style, {opacity: 0, duration: 0.3, ease: 'power2.inOut'});
+
+            } else {
+                gsap.to(stage, {x: 1, repeat: 2, yoyo: true, duration: 0.04, ease: 'power2.inOut', onComplete: () => {
+                    stage.x = 0;
+                    }});
+            }
+
+            this.lives = SIGNALS.lives.value
+        })
+
+
 
         effect(() => {
             if(SIGNALS.lives.value >= 0) return;

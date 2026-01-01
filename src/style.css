@@ -28,3 +28,12 @@ body{
 .canvas-container{
     position: relative;
 }
+
+.flashBack{
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    pointer-events: none;
+    opacity: 0;
+}
+

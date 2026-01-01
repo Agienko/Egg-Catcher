@@ -1,6 +1,7 @@
 import {Text} from "pixi.js";
 import {effect} from "@preact/signals-core";
 import {SIGNALS} from "../signals/signals.js";
+import {gsap} from "gsap";
 
 export class Texts {
     constructor(stage) {
@@ -43,20 +44,23 @@ export class Texts {
         })
         stage.addChild(this.scoreTextDynamic);
 
+        this.scoreTween = null;
+        this.livesTween = null;
 
         effect(() => {
-            this.scoreTextDynamic.text = SIGNALS.score
+            this.scoreTween?.kill();
+            this.scoreTextDynamic.text = SIGNALS.score;
+            this.scoreTextDynamic.scale.set(1);
+            this.scoreTween = gsap.to(this.scoreTextDynamic, {pixi: {scale: 1.2}, duration: 0.2,repeat: 1, yoyo: true, ease: 'power2.inOut'})
         })
         effect(() => {
-            this.livesTextDynamic.text = SIGNALS.lives
+            this.livesTween?.kill();
+            this.livesTextDynamic.text = SIGNALS.lives;
+            this.livesTextDynamic.scale.set(1);
+            this.livesTween = gsap.to(this.livesTextDynamic, {pixi: {scale: 1.2}, duration: 0.2,repeat: 1, yoyo: true, ease: 'power2.inOut'})
+
+
         })
 
-    }
-
-    setLives(lives){
-        this.livesTextDynamic.text = lives;
-    }
-    setScore(score){
-        this.scoreTextDynamic.text = score;
     }
 }

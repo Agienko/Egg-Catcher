@@ -7,8 +7,8 @@ import {sound} from "@pixi/sound";
 import {sender} from "../../sender/event-sender.js";
 
 export class Egg extends Sprite{
-    constructor(stage) {
-        super({texture: Texture.from('egg')});
+    constructor(stage, descriptor) {
+        super(descriptor);
 
         this.stage = stage;
         this.tween = null;
@@ -17,18 +17,15 @@ export class Egg extends Sprite{
 
         this.eventMode = 'none';
 
-        this.isShit = this.#generateShit();
-        this.hasBonus = !this.isShit && this.#generateBonus();
-        if (this.hasBonus) this.texture = Texture.from('golden_egg');
-        if (this.isShit) this.texture = Texture.from('shit');
+        this.isShit = descriptor.isShit;
+        this.hasBonus = descriptor.hasBonus;
 
         const score = Math.max(SIGNALS.score.value, 8);
 
-        this.speed = Math.max(this.isShit ? 1.2 : 1.1, Math.log10(score/8));
+        this.speed = Math.max(this.isShit ? 1.2 : 1.1, Math.log10(score/8))*1.5;
         this.acc = 0.005 + +this.hasBonus * 0.001 + (this.isShit ? 0.002 : 0);
 
         this.anchor.set(0.5);
-
 
         if(this.isShit){
             stage.addChild(this);
@@ -42,95 +39,61 @@ export class Egg extends Sprite{
 
     }
 
-    #generateShit(){
-        const score = SIGNALS.score.value;
-
-        let chance = 0.75;
-
-        if(score > 1000) {
-            chance = 0.95;
-        } else if(score > 750){
-            chance = 0.9;
-        } else if(score > 500) {
-            chance = 0.85;
-        } else if(score > 300) {
-            chance = 0.8;
-        } else if(score > 200) {
-            chance = 0.75;
-        } else if(score > 100) {
-            chance = 0.7;
-        }
-
-        return Math.random() > chance;
-    }
-    #generateBonus(){
-        const score = SIGNALS.score.value;
-
-        let chance = 0.95;
-
-        if(score > 1000) {
-            chance = 0.65;
-        }else if(score > 750){
-            chance = 0.7;
-        }else if(score > 500) {
-            chance = 0.75;
-        } else if(score > 300) {
-            chance = 0.80;
-        } else if(score > 200) {
-            chance = 0.85;
-        } else if(score > 100) {
-            chance = 0.9;
-        }
-
-        return Math.random() > chance;
-    }
     tick = t => {
-
-        if(SIGNALS.lives.value < 0) {
-            this.destroy();
-            return;
-        }
+        if (SIGNALS.lives.value < 0) return this.destroy();
 
         this.speed += this.acc;
         this.y += this.speed * t.deltaMS/10;
 
-        if(this.y > 300 && this.y < 310 && Math.abs(this.x - SIGNALS.bagX.value) <= 20) {
-
-            if(this.isShit) {
-                Ticker.shared.remove(this.tick);
-                sender.send('shitOnBag', this)
-                --SIGNALS.score.value;
-                sound.play('crash', {volume: 0.02, speed: 0.5, end: 0.1});
-            } else {
-                this.destroy();
-                ++SIGNALS.score.value;
-                sound.play('catch', {volume: 0.02, speed: 1.2});
-            }
-
+        if (this.fallInBagTest()) {
+            this.fallInBag();
+        } else if (this.fallGroundTest()) {
+            this.fallOnGround();
+        }
+    }
+    fallInBag(){
+        if(this.isShit) {
+            Ticker.shared.remove(this.tick);
+            this.type = '';
+            sender.send('shitOnBag', this)
+            --SIGNALS.score.value;
+            sound.play('crash', {volume: 0.02, speed: 0.5, end: 0.1});
+        } else {
+            this.destroy();
+            ++SIGNALS.score.value;
+            sound.play('catch', {volume: 0.02, speed: 1.2});
 
             if(this.hasBonus) {
                 ++SIGNALS.lives.value;
                 sound.play('life', {volume: 0.012});
             }
-            return;
         }
 
-        if(this.y >= WIDTH - 60) {
-            this.type = '';
-            Ticker.shared.remove(this.tick);
-            this.y = WIDTH - 60;
+    }
 
-            const rnd = randomMinMax(-5, 5);
+    fallInBagTest(){
+        return this.y > 300 && this.y < 310 && Math.abs(this.x - SIGNALS.bagX.value) <= 20;
+    }
 
-            this.angle = -rnd;
-            this.x += rnd;
+    fallOnGround(){
+        this.type = '';
+        Ticker.shared.remove(this.tick);
+        this.y = WIDTH - 60;
 
-            this.texture = Texture.from(this.isShit ? 'crashed_shit' : 'crashed_egg' );
+        const rnd = randomMinMax(-5, 5);
 
-            this.tween = gsap.to(this, {alpha: 0, duration: 1.5, onComplete: () => this.destroy()})
-            sound.play('crash', {volume: 0.05, speed: this.isShit ? 2 : 1.5});
-            if(!this.isShit) --SIGNALS.lives.value;
-        }
+        this.angle = -rnd;
+        this.x += rnd;
+
+        this.texture = Texture.from(this.isShit ? 'crashed_shit' : 'crashed_egg' );
+
+        this.tween = gsap.to(this, {alpha: 0, duration: 1.5, delay: 0.5, onComplete: () => this.destroy()})
+        sound.play('crash', {volume: 0.05, speed: this.isShit ? 2 : 1.5});
+        if(!this.isShit) --SIGNALS.lives.value;
+    }
+
+    fallGroundTest(){
+        return this.y >= WIDTH - 60;
     }
 
     destroy(options) {
