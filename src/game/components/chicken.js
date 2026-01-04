@@ -30,6 +30,7 @@ export class Chicken extends AnimatedSprite{
         this.eventMode = 'none';
         this.position.set(48 + 72 * i, 80)
 
+
         this.animationSpeed = 0.04;
 
         this.stage.addChild(this);
